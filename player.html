@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Stream Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    video {
+      width: 90%;
+      max-width: 800px;
+      border: 3px solid #444;
+      border-radius: 12px;
+      background-color: #000;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔴 Live Stream</h2>
+  <video id="video" controls autoplay muted playsinline></video>
+
+  <script>
+    // 👉 Replace this with your public Render or ngrok link later
+   // const videoSrc = 'https://live-video-streaming-0p8m.onrender.com/live/test/index.m3u8';
+
+//   const videoSrc = 'http://127.0.0.1:8000//live/test/index.m3u8';
+const videoSrc = 'https://unvictimized-unbroached-darren.ngrok-free.dev/live/test/index.m3u8';
+    const video = document.getElementById('video');
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(videoSrc);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play();
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // For Safari or iOS browsers
+      video.src = videoSrc;
+      video.addEventListener('loadedmetadata', () => {
+        video.play();
+      });
+    } else {
+      alert('Your browser does not support HLS streaming.');
+    }
+  </script>
+
+  
+</body>
+</html>
