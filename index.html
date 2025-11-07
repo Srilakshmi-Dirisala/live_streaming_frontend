@@ -34,11 +34,9 @@
   <video id="video" controls autoplay muted playsinline></video>
 
   <script>
-    // 👉 Replace this with your public Render or ngrok link later
-   // const videoSrc = 'https://live-video-streaming-0p8m.onrender.com/live/test/index.m3u8';
+    // 👇 Replace localhost with your ngrok public URL
+    const videoSrc = 'https://unvictimized-unbroached-darren.ngrok-free.dev/live/test/index.m3u8';
 
-//   const videoSrc = 'http://127.0.0.1:8000//live/test/index.m3u8';
-const videoSrc = 'https://unvictimized-unbroached-darren.ngrok-free.dev/live/test/index.m3u8';
     const video = document.getElementById('video');
 
     if (Hls.isSupported()) {
@@ -49,16 +47,11 @@ const videoSrc = 'https://unvictimized-unbroached-darren.ngrok-free.dev/live/tes
         video.play();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // For Safari or iOS browsers
       video.src = videoSrc;
-      video.addEventListener('loadedmetadata', () => {
-        video.play();
-      });
+      video.addEventListener('loadedmetadata', () => video.play());
     } else {
       alert('Your browser does not support HLS streaming.');
     }
   </script>
-
-  
 </body>
 </html>
