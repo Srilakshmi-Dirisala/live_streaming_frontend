@@ -34,24 +34,29 @@
   <video id="video" controls autoplay muted playsinline></video>
 
   <script>
-    // Use your ngrok or VPS HLS URL
-    const videoSrc = 'http://91.108.110.72:8000/live/test/index.m3u8';
     const video = document.getElementById('video');
 
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(videoSrc);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play();
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari / iOS
-      video.src = videoSrc;
-      video.addEventListener('loadedmetadata', () => video.play());
-    } else {
-      alert('Your browser does not support HLS streaming.');
+    function playHLS() {
+      // Append timestamp to avoid caching
+      const ts = Date.now();
+      const videoSrc = `https://stream.raajugarikossu.com/live/test/index.m3u8?ts=${ts}`; // or full VPS URL if remote
+
+      if (Hls.isSupported()) {
+        const hls = new Hls({ liveSyncDurationCount: 3 });
+        hls.loadSource(videoSrc);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = videoSrc;
+        video.addEventListener('loadedmetadata', () => video.play());
+      } else {
+        alert('Your browser does not support HLS streaming.');
+      }
     }
+
+    playHLS();
+    // Optional: reload every 10 seconds to stay live
+    setInterval(playHLS, 10000);
   </script>
 </body>
 </html>
