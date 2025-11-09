@@ -3,25 +3,26 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Full Screen Height Mobile Video Center Crop</title>
+<title>Responsive Fullscreen HLS Video with Pause Button</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
   html, body {
     margin: 0;
     padding: 0;
-    height: 100vh;  /* full viewport height */
-    width: 100vw;   /* full viewport width */
+    height: 100vh;
+    width: 100vw;
     background: #000;
     overflow: hidden;
   }
   body {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
   }
   .video-container {
     width: 100vw;
-    height: 100vh;       /* fixed full screen height */
+    height: 100vh;
     overflow: hidden;
     position: relative;
     background-color: black;
@@ -33,8 +34,8 @@
     min-width: 100%;
     min-height: 100%;
     transform: translate(-50%, -50%);
-    object-fit: cover;      /* cover container */
-    object-position: center; /* center crop */
+    object-fit: cover;
+    object-position: center;
     pointer-events: none;
     display: block;
   }
@@ -50,16 +51,15 @@
     border: none;
     border-radius: 4px;
     font-size: 16px;
-    cursor: default;
-    display: none;
+    cursor: pointer;
     z-index: 10;
+    display: none;
   }
-  @media(min-width: 768px) {
-    /* Desktop fixed size */
+  @media (min-width: 768px) {
     .video-container {
       width: 600px;
       height: 400px;
-      margin: 50px auto;
+      margin: 50px auto 10px;
     }
     video {
       position: static;
@@ -79,10 +79,10 @@
 </style>
 </head>
 <body>
-  <div class="video-container" aria-label="Full screen mobile height video container showing center crop">
+  <div class="video-container" aria-label="Video display area">
     <video id="video" autoplay playsinline muted></video>
   </div>
-  <button id="pauseButton" disabled>Paused</button>
+  <button id="pauseButton" disabled>Pause</button>
 
 <script>
   const video = document.getElementById('video');
@@ -90,9 +90,7 @@
 
   video.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('keydown', e => {
-    if (document.activeElement === video) {
-      e.preventDefault();
-    }
+    if (document.activeElement === video) e.preventDefault();
   });
 
   function playHLS() {
@@ -104,36 +102,56 @@
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.play().catch(() => {});
-        pauseButton.style.display = 'none';
+        pauseButton.style.display = 'block';
+        pauseButton.disabled = false;
+        pauseButton.textContent = 'Pause';
       });
       video.addEventListener('pause', () => {
+        pauseButton.textContent = 'Play';
         pauseButton.style.display = 'block';
       });
       video.addEventListener('play', () => {
-        pauseButton.style.display = 'none';
+        pauseButton.textContent = 'Pause';
+        pauseButton.style.display = 'block';
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = videoSrc;
       video.addEventListener('loadedmetadata', () => {
         video.play().catch(() => {});
-        pauseButton.style.display = 'none';
+        pauseButton.style.display = 'block';
+        pauseButton.disabled = false;
+        pauseButton.textContent = 'Pause';
       });
       video.addEventListener('pause', () => {
+        pauseButton.textContent = 'Play';
         pauseButton.style.display = 'block';
       });
       video.addEventListener('play', () => {
-        pauseButton.style.display = 'none';
+        pauseButton.textContent = 'Pause';
+        pauseButton.style.display = 'block';
       });
     }
   }
   playHLS();
   setInterval(playHLS, 10000);
 
+  pauseButton.addEventListener('click', () => {
+    if (video.paused) {
+      video.play();
+      pauseButton.textContent = 'Pause';
+    } else {
+      video.pause();
+      pauseButton.textContent = 'Play';
+    }
+  });
+
   function unmuteOnInteraction() {
     if (video.muted || video.volume === 0) {
       video.muted = false;
       video.volume = 1;
       video.play();
+      pauseButton.style.display = 'block';
+      pauseButton.textContent = 'Pause';
       document.body.removeEventListener('click', unmuteOnInteraction);
       document.body.removeEventListener('touchstart', unmuteOnInteraction);
     }
