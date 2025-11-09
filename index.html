@@ -44,7 +44,7 @@
   @media (max-width: 767px) {
     video {
       width: 100vw;
-      height: calc(100vw * 2 / 3); /* Maintain 3:2 aspect ratio, same as 600x400 */
+      height: calc(100vw * 2 / 3); /* Maintain 3:2 aspect ratio */
     }
     #pauseButton {
       width: 80px;
@@ -55,7 +55,7 @@
 </style>
 </head>
 <body>
-  <video id="video" autoplay muted playsinline></video>
+  <video id="video" autoplay playsinline></video>
   <button id="pauseButton" disabled>Paused</button>
 
 <script>
@@ -80,7 +80,9 @@
       hls.loadSource(videoSrc);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play();
+        video.play().catch(() => {
+          // Autoplay with sound might be blocked, will unmute on user interaction
+        });
         pauseButton.style.display = 'none';
       });
       video.addEventListener('pause', () => {
@@ -92,7 +94,9 @@
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = videoSrc;
       video.addEventListener('loadedmetadata', () => {
-        video.play();
+        video.play().catch(() => {
+          // Autoplay with sound might be blocked, will unmute on user interaction
+        });
         pauseButton.style.display = 'none';
       });
       video.addEventListener('pause', () => {
@@ -104,8 +108,25 @@
     }
   }
 
+  // Start playback
   playHLS();
+
+  // Retry reload stream every 10 seconds to keep fresh
   setInterval(playHLS, 10000);
+
+  // Unmute and play on first user interaction to comply with autoplay policies
+  function unmuteOnInteraction() {
+    if (video.muted || video.volume === 0) {
+      video.muted = false;
+      video.volume = 1;
+      video.play();
+      document.body.removeEventListener('click', unmuteOnInteraction);
+      document.body.removeEventListener('touchstart', unmuteOnInteraction);
+    }
+  }
+
+  document.body.addEventListener('click', unmuteOnInteraction);
+  document.body.addEventListener('touchstart', unmuteOnInteraction);
 </script>
 </body>
 </html>
