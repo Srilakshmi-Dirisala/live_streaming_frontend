@@ -1,105 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Stream Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      overflow: hidden;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Stream Viewer Responsive</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+  body {
+    margin: 0;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    overflow: hidden;
+  }
+  video {
+    width: 600px;
+    height: 400px;
+    object-fit: cover;
+    background: #000;
+    border: none;
+    outline: none;
+    display: block;
+    pointer-events: none; /* Disable mouse interactions */
+  }
+  #pauseButton {
+    margin-top: 10px;
+    width: 100px;
+    height: 30px;
+    background-color: #c00;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: default;
+    display: none; /* Hidden by default */
+  }
+  /* Responsive styling for mobile devices */
+  @media (max-width: 767px) {
     video {
-      width: 600px;
-      height: 400px;
-      object-fit: cover;
-      background: #000;
-      border: none;
-      outline: none;
-      display: block;
-      pointer-events: none; /* Disable mouse interactions */
+      width: 100vw;
+      height: calc(100vw * 2 / 3); /* Maintain 3:2 aspect ratio, same as 600x400 */
     }
     #pauseButton {
-      margin-top: 10px;
-      width: 100px;
-      height: 30px;
-      background-color: #c00;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      cursor: pointer;
-      display: none; /* Hidden by default */
+      width: 80px;
+      height: 25px;
+      font-size: 14px;
     }
-  </style>
+  }
+</style>
 </head>
 <body>
   <video id="video" autoplay muted playsinline></video>
   <button id="pauseButton" disabled>Paused</button>
 
-  <script>
-    const video = document.getElementById('video');
-    const pauseButton = document.getElementById('pauseButton');
+<script>
+  const video = document.getElementById('video');
+  const pauseButton = document.getElementById('pauseButton');
 
-    // Prevent right-click context menu on video
-    video.addEventListener('contextmenu', e => e.preventDefault());
+  // Prevent right-click context menu on video
+  video.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Prevent keyboard controls on video when focused
-    window.addEventListener('keydown', e => {
-      if (document.activeElement === video) {
-        e.preventDefault();
-      }
-    });
-
-    // Function to start playing HLS stream
-    function playHLS() {
-      const ts = Date.now();
-      const videoSrc = `https://stream.raajugarikossu.com/live/test/index.m3u8?ts=${ts}`;
-      if (Hls.isSupported()) {
-        const hls = new Hls({ liveSyncDurationCount: 3 });
-        hls.loadSource(videoSrc);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play();
-          pauseButton.style.display = 'none'; // Hide pause button on play
-        });
-        // Listen to pause/play events triggered by admin (simulated here)
-        video.addEventListener('pause', () => {
-          // Show pause button only when paused by admin
-          pauseButton.style.display = 'block';
-        });
-        video.addEventListener('play', () => {
-          pauseButton.style.display = 'none';
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = videoSrc;
-        video.addEventListener('loadedmetadata', () => {
-          video.play();
-          pauseButton.style.display = 'none';
-        });
-        video.addEventListener('pause', () => {
-          pauseButton.style.display = 'block';
-        });
-        video.addEventListener('play', () => {
-          pauseButton.style.display = 'none';
-        });
-      }
+  // Prevent keyboard controls on video when focused
+  window.addEventListener('keydown', e => {
+    if (document.activeElement === video) {
+      e.preventDefault();
     }
+  });
 
-    // Initial play
-    playHLS();
+  function playHLS() {
+    const ts = Date.now();
+    const videoSrc = `https://stream.raajugarikossu.com/live/test/index.m3u8?ts=${ts}`;
+    if (Hls.isSupported()) {
+      const hls = new Hls({ liveSyncDurationCount: 3 });
+      hls.loadSource(videoSrc);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play();
+        pauseButton.style.display = 'none';
+      });
+      video.addEventListener('pause', () => {
+        pauseButton.style.display = 'block';
+      });
+      video.addEventListener('play', () => {
+        pauseButton.style.display = 'none';
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = videoSrc;
+      video.addEventListener('loadedmetadata', () => {
+        video.play();
+        pauseButton.style.display = 'none';
+      });
+      video.addEventListener('pause', () => {
+        pauseButton.style.display = 'block';
+      });
+      video.addEventListener('play', () => {
+        pauseButton.style.display = 'none';
+      });
+    }
+  }
 
-    // Reload stream every 10 seconds to keep fresh
-    setInterval(playHLS, 10000);
-  </script>
+  playHLS();
+  setInterval(playHLS, 10000);
+</script>
 </body>
 </html>
