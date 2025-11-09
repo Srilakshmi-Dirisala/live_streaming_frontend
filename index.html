@@ -2,34 +2,47 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Live Stream Viewer Responsive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Full Screen Height Mobile Video Center Crop</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
-  body {
+  html, body {
     margin: 0;
+    padding: 0;
+    height: 100vh;  /* full viewport height */
+    width: 100vw;   /* full viewport width */
     background: #000;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
     overflow: hidden;
   }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .video-container {
+    width: 100vw;
+    height: 100vh;       /* fixed full screen height */
+    overflow: hidden;
+    position: relative;
+    background-color: black;
+  }
   video {
-    width: 600px;
-    height: 400px;
-    object-fit: cover;
-    background: #000;
-    border: none;
-    outline: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;      /* cover container */
+    object-position: center; /* center crop */
+    pointer-events: none;
     display: block;
-    pointer-events: none; /* Disable mouse interactions */
   }
   #pauseButton {
-    margin-top: 10px;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100px;
     height: 30px;
     background-color: #c00;
@@ -38,34 +51,44 @@
     border-radius: 4px;
     font-size: 16px;
     cursor: default;
-    display: none; /* Hidden by default */
+    display: none;
+    z-index: 10;
   }
-  /* Responsive styling for mobile devices */
-  @media (max-width: 767px) {
+  @media(min-width: 768px) {
+    /* Desktop fixed size */
+    .video-container {
+      width: 600px;
+      height: 400px;
+      margin: 50px auto;
+    }
     video {
-      width: 100vw;
-      height: calc(100vw * 2 / 3); /* Maintain 3:2 aspect ratio */
+      position: static;
+      width: 600px;
+      height: 400px;
+      transform: none;
+      min-width: auto;
+      min-height: auto;
     }
     #pauseButton {
-      width: 80px;
-      height: 25px;
-      font-size: 14px;
+      position: static;
+      transform: none;
+      margin: 10px auto 0;
+      display: none;
     }
   }
 </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
+  <div class="video-container" aria-label="Full screen mobile height video container showing center crop">
+    <video id="video" autoplay playsinline muted></video>
+  </div>
   <button id="pauseButton" disabled>Paused</button>
 
 <script>
   const video = document.getElementById('video');
   const pauseButton = document.getElementById('pauseButton');
 
-  // Prevent right-click context menu on video
   video.addEventListener('contextmenu', e => e.preventDefault());
-
-  // Prevent keyboard controls on video when focused
   window.addEventListener('keydown', e => {
     if (document.activeElement === video) {
       e.preventDefault();
@@ -80,9 +103,7 @@
       hls.loadSource(videoSrc);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {
-          // Autoplay with sound might be blocked, will unmute on user interaction
-        });
+        video.play().catch(() => {});
         pauseButton.style.display = 'none';
       });
       video.addEventListener('pause', () => {
@@ -94,9 +115,7 @@
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = videoSrc;
       video.addEventListener('loadedmetadata', () => {
-        video.play().catch(() => {
-          // Autoplay with sound might be blocked, will unmute on user interaction
-        });
+        video.play().catch(() => {});
         pauseButton.style.display = 'none';
       });
       video.addEventListener('pause', () => {
@@ -107,14 +126,9 @@
       });
     }
   }
-
-  // Start playback
   playHLS();
-
-  // Retry reload stream every 10 seconds to keep fresh
   setInterval(playHLS, 10000);
 
-  // Unmute and play on first user interaction to comply with autoplay policies
   function unmuteOnInteraction() {
     if (video.muted || video.volume === 0) {
       video.muted = false;
@@ -124,7 +138,6 @@
       document.body.removeEventListener('touchstart', unmuteOnInteraction);
     }
   }
-
   document.body.addEventListener('click', unmuteOnInteraction);
   document.body.addEventListener('touchstart', unmuteOnInteraction);
 </script>
